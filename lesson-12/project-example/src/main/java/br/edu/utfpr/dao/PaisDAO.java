@@ -12,7 +12,7 @@ import java.util.List;
 import lombok.extern.java.Log;
 
 @Log
-public class PaisDAO {
+public class PaisDAO extends TemplateMethods<PaisDTO>{
 
     // Responsável por criar a tabela País no banco
     public PaisDAO() {
@@ -31,31 +31,8 @@ public class PaisDAO {
         }
     }
 
-    public boolean incluir(PaisDTO pais) {
-        try ( Connection conn = DriverManager.getConnection("jdbc:derby:memory:database")) {
-
-            String sql = "INSERT INTO pais (nome, sigla, codigoTelefone) VALUES (?, ?, ?)";
-
-            PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setString(1, pais.getNome());
-            statement.setString(2, pais.getSigla());
-            statement.setInt(3, pais.getCodigoTelefone());
-
-            int rowsInserted = statement.executeUpdate();
-
-            if (rowsInserted > 0) {
-                return true;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
-    public List<PaisDTO> listarTodos() {
-
+    @Override
+    protected List<PaisDTO> getAll() {
         List<PaisDTO> resultado = new ArrayList<>();
 
         try ( Connection conn = DriverManager.getConnection("jdbc:derby:memory:database")) {
@@ -86,17 +63,20 @@ public class PaisDAO {
         return resultado;
     }
 
-    public boolean excluir(int id) {
-
+    @Override
+    protected boolean save(PaisDTO t) {
         try ( Connection conn = DriverManager.getConnection("jdbc:derby:memory:database")) {
 
-            String sql = "DELETE FROM pais WHERE id=?";
+            String sql = "INSERT INTO pais (nome, sigla, codigoTelefone) VALUES (?, ?, ?)";
 
             PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setInt(1, id);
+            statement.setString(1, pais.getNome());
+            statement.setString(2, pais.getSigla());
+            statement.setInt(3, pais.getCodigoTelefone());
 
-            int rowsDeleted = statement.executeUpdate();
-            if (rowsDeleted > 0) {
+            int rowsInserted = statement.executeUpdate();
+
+            if (rowsInserted > 0) {
                 return true;
             }
 
@@ -107,7 +87,8 @@ public class PaisDAO {
         return false;
     }
 
-    public boolean alterar(PaisDTO pais) {
+    @Override
+    protected boolean update(PaisDTO t) {
         try ( Connection conn = DriverManager.getConnection("jdbc:derby:memory:database")) {
 
             String sql = "UPDATE pais SET nome=?, sigla=?, codigoTelefone=? WHERE id=?";
@@ -128,8 +109,30 @@ public class PaisDAO {
         
         return false;
     }
-    
-    public PaisDTO listarPorId (int id) {
+
+    @Override
+    protected boolean delete(PaisDTO t) {
+        try ( Connection conn = DriverManager.getConnection("jdbc:derby:memory:database")) {
+
+            String sql = "DELETE FROM pais WHERE id=?";
+
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1, id);
+
+            int rowsDeleted = statement.executeUpdate();
+            if (rowsDeleted > 0) {
+                return true;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    @Override
+    protected PaisDTO listarPorId(int id) {
         return this.listarTodos().stream().filter(p -> p.getId() == id).findAny().orElseThrow(RuntimeException::new);
     }
 
